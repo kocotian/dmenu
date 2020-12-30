@@ -800,6 +800,8 @@ main(int argc, char *argv[])
 			fast = 1;
 		else if (!strcmp(argv[i], "-F"))   /* not fuzzy match */
 			fuzzy = 0;
+		else if (!strcmp(argv[i], "-i"));   /* for scripts compatibility, insensitive
+											   matching is default by patch */
 		else if (!strcmp(argv[i], "-s")) { /* case-sensitive item matching */
 			fstrncmp = strncmp;
 			fstrstr = strstr;
