@@ -28,7 +28,9 @@
 #define TEXTW(X)              (drw_fontset_getwidth(drw, (X)) + lrpad)
 
 /* enums */
-enum { SchemeNorm, SchemeSel, SchemeOut, SchemePrpt, SchemeLast }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemePrpt,
+       SchemeLnNorm, SchemeLnSel, SchemeOut,
+       SchemeLast }; /* color schemes */
 
 struct item {
 	char *text;
@@ -118,8 +120,9 @@ cistrstr(const char *s, const char *sub)
 }
 
 static int
-drawitem(struct item *item, int x, int y, int w)
+drawitem(struct item *item, int x, int y, int w, int noline)
 {
+	int ret;
 	if (item == sel)
 		drw_setscheme(drw, scheme[SchemeSel]);
 	else if (item->out)
@@ -127,7 +130,14 @@ drawitem(struct item *item, int x, int y, int w)
 	else
 		drw_setscheme(drw, scheme[SchemeNorm]);
 
-	return drw_text(drw, x, y, w, bh, lrpad / 2, item->text, 0);
+	ret = drw_text(drw, x, y, w, bh, lrpad / 2, item->text, 0);
+
+	if (!noline)
+	drw_setscheme(drw, scheme[item == sel ? SchemeLnSel : SchemeLnNorm]);
+	drw_rect(drw, x + 1, y, w - 2, 2,
+		1, 1);
+
+	return ret;
 }
 
 static void
@@ -163,8 +173,11 @@ drawmenu(void)
 				item,
 				x + ((i / lines) *  ((mw - x) / columns)),
 				y + (((i % lines) + 1) * bh),
-				(mw - x) / columns
+				(mw - x) / columns, 1
 			);
+		drw_setscheme(drw, scheme[SchemeLnSel]);
+		drw_rect(drw, 1, 0, mw - 2, 2,
+			1, 1);
 	} else if (matches) {
 		/* draw horizontal list */
 		x += inputw;
@@ -175,7 +188,7 @@ drawmenu(void)
 		}
 		x += w;
 		for (item = curr; item != next; item = item->right)
-			x = drawitem(item, x, 0, MIN(TEXTW(item->text), mw - x - TEXTW(">")));
+			x = drawitem(item, x, 0, MIN(TEXTW(item->text), mw - x - TEXTW(">")), 0);
 		if (next) {
 			w = TEXTW(">");
 			drw_setscheme(drw, scheme[SchemeNorm]);
