@@ -120,7 +120,7 @@ cistrstr(const char *s, const char *sub)
 }
 
 static int
-drawitem(struct item *item, int x, int y, int w, int noline)
+drawitem(struct item *item, int x, int y, int w, int linetype)
 {
 	int ret;
 	if (item == sel)
@@ -130,12 +130,15 @@ drawitem(struct item *item, int x, int y, int w, int noline)
 	else
 		drw_setscheme(drw, scheme[SchemeNorm]);
 
-	ret = drw_text(drw, x, y, w, bh, lrpad / 2, item->text, 0);
+	ret = drw_text(drw, x + (linetype == 2 ? 2 : 0), y + (linetype == 1 ? 2 : 0), w + (linetype == 2 ? 2 : 0), bh - (linetype == 1 ? 2 : 0), lrpad / 2, item->text, 0);
 
-	if (!noline)
-	drw_setscheme(drw, scheme[item == sel ? SchemeLnSel : SchemeLnNorm]);
-	drw_rect(drw, x + 1, y, w - 2, 2,
-		1, 1);
+	if (linetype == 1) { /* horizontal line */
+		drw_setscheme(drw, scheme[item == sel ? SchemeLnSel : SchemeLnNorm]);
+		drw_rect(drw, x + 1, y, w - 2, 2, 1, 1);
+	} else if (linetype == 2) { /* vertical line */
+		drw_setscheme(drw, scheme[item == sel ? SchemeLnSel : SchemeLnNorm]);
+		drw_rect(drw, x, y + 1, 2, bh - 2, 1, 1);
+	}
 
 	return ret;
 }
@@ -173,7 +176,7 @@ drawmenu(void)
 				item,
 				x + ((i / lines) *  ((mw - x) / columns)),
 				y + (((i % lines) + 1) * bh),
-				(mw - x) / columns, 1
+				(mw - x) / columns, 2
 			);
 		drw_setscheme(drw, scheme[SchemeLnSel]);
 		drw_rect(drw, 1, 0, mw - 2, 2,
@@ -188,7 +191,7 @@ drawmenu(void)
 		}
 		x += w;
 		for (item = curr; item != next; item = item->right)
-			x = drawitem(item, x, 0, MIN(TEXTW(item->text), mw - x - TEXTW(">")), 0);
+			x = drawitem(item, x, 0, MIN(TEXTW(item->text), mw - x - TEXTW(">")), 1);
 		if (next) {
 			w = TEXTW(">");
 			drw_setscheme(drw, scheme[SchemeNorm]);
